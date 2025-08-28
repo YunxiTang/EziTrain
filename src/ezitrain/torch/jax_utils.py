@@ -4,7 +4,7 @@ import jax.numpy as jnp
 
 def from_numpy(np_array):
     """
-        put a variable to a jnp array
+    put a variable to a jnp array
     """
     return jnp.array(np_array)
 
