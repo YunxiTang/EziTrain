@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import wandb
+from tensorboardX import SummaryWriter
 from omegaconf import  OmegaConf
 from .txt_logger import TxtLogger
 import PIL
@@ -29,10 +30,11 @@ class TrainLogger:
         """
         self._wandb_logger = None
         self._local_logger = None
+        self._tb_logger = None
         self._data = dict() 
 
         if log_tb:
-            raise NotImplementedError
+            self._tb_logger = SummaryWriter(os.path.join(log_dir), flush_secs=1, max_queue=1)
 
         if log_wandb:
             self._wandb_logger = wandb.init(entity=wandb_entity,
@@ -82,7 +84,21 @@ class TrainLogger:
                 if k not in self._data:
                     self._data[k] = []
                 self._data[k].append(v)
+                
+        # log to tensorboardX
+        if self._tb_logger is not None:
+            if data_type == 'scalar':
+                self._tb_logger.add_scalar(k, v, epoch)
 
+                if log_stats:
+                    stats = self.get_stats(k)
+                    for (stat_k, stat_v) in stats.items():
+                        stat_k_name = '{}-{}'.format(k, stat_k)
+                        self._tb_logger.add_scalar(stat_k_name, stat_v, epoch)
+
+            elif data_type == 'image':
+                self._tb_logger.add_images(k, img_tensor=v, global_step=epoch, dataformats="NHWC")
+        
         # log to wandb
         if self._wandb_logger is not None:
             try:
