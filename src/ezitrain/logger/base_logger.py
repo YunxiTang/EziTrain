@@ -4,7 +4,7 @@
 import os
 
 
-class BaseLogger(object):
+class BaseLogger:
     '''
         base logger class
     '''
@@ -13,6 +13,7 @@ class BaseLogger(object):
        if not os.path.exists(directory):
             print("Making new directory at {}".format(directory))
             os.makedirs(directory)
+       self._directory = directory
        self._path = path_to_save
        self._logger_name = name
 
