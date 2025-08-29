@@ -4,6 +4,7 @@ import wandb
 from tensorboardX import SummaryWriter
 from omegaconf import OmegaConf
 from .txt_logger import TxtLogger
+from .json_logger import JsonLogger
 import PIL
 
 
@@ -38,8 +39,29 @@ class TrainLogger:
 
         if log_tb:
             self._tb_logger = SummaryWriter(
-                os.path.join(log_dir), flush_secs=1, max_queue=1
+                os.path.join(log_dir, project, experiment_name),
+                flush_secs=1,
+                max_queue=1,
             )
+            tb_config = dict()
+            if meta_cfg is not None:
+                for k, v in meta_cfg.items():
+                    tb_config[k] = v
+
+            if train_cfg is not None:
+                for k, v in train_cfg.items():
+                    tb_config[k] = v
+
+            if model_cfg is not None:
+                for k, v in model_cfg.items():
+                    tb_config[k] = v
+            tmp_json_logger = JsonLogger(
+                path_to_save=os.path.join(
+                    log_dir, project, experiment_name, "config.json"
+                )
+            )
+            tmp_json_logger.log_dict_data(tb_config)
+            tmp_json_logger.save_data()
 
         if log_wandb:
             self._wandb_logger = wandb.init(
